@@ -37,6 +37,17 @@ Browser (SPA, ssr: false)
 | RAG | `app/lib/rag/`, `useRagStore`, `PlaygroundRagDocumentsPanel` | In-browser document chunking, local/Ollama embeddings, prompt injection |
 | i18n | `app/i18n/en.ts` | English message catalog (localization-ready) |
 
+## External input validation
+
+External and user-controlled inputs are validated at their entry points before they reach provider or MCP operations:
+
+- **Stream requests** — `app/lib/validateStreamRequest.ts` validates provider/model fields, prompts, optional generation parameters, MCP tool metadata, and HTTP(S) Ollama/LM Studio URLs with Valibot.
+- **Prompt backups and `.prompt` files** — `app/lib/schemas/promptBackup.ts` and `app/lib/schemas/promptFile.ts` define the schemas used to reject malformed prompt imports.
+- **Dataset imports** — `app/lib/schemas/dataset.ts` validates JSON rows and enforces the dataset row limit; CSV parsing feeds the same dataset import path.
+- **MCP HTTP/stdio requests** — `app/lib/mcp/validate.ts` validates transport/action fields, allowlisted URLs and stdio commands, header names, environment entries, and tool-call arguments before proxying.
+
+These schemas are the discoverable validation boundary for malformed external input; existing tests under `tests/` cover the corresponding validation modules.
+
 ## Trust boundaries
 
 1. **User's browser** — the only place decrypted API keys exist. The vault ciphertext may sit in `localStorage`; the derived CryptoKey is tab-scoped (`sessionStorage`).
